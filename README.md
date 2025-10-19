@@ -12,6 +12,7 @@ Visual Information Lab, University of Bristol
 - [Installation](#installation)
 - [Inference](#inference)
 - [Training and Evaluation](#training-and-evaluation)
+- [Datasets](#datasets)
 - [Checkpoints](#efficientsam3-model-zoo--weight-release)
 - [CoreML / ONNX Export](#coreml--onnx-export)
 - [Web Demo](#web-demo)
@@ -143,6 +144,14 @@ masks, _, _ = predictor.predict(<input_prompts>)
 ## Training and Evaluation
 
 Please refer to [README_TRAIN.md](README_TRAIN.md) for training and evaluation details.
+
+---
+
+## Datasets
+
+For dataset setup and download scripts (`data/download_*.sh`) covering COCO, DAVIS, LVIS, SA-1B, SA-V, LVOS, MOSE, and YouTube-VOS, see:
+
+- [README_dataset.md](README_dataset.md)
 
 ---
 

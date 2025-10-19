@@ -124,5 +124,24 @@ Thumbs.db
 # Log directories
 logs/
 
+# Local datasets
+data/
+dataset/
+datasets/
+
+# Allowlist dataset helper scripts and lists inside data/
+!data/
+data/*
+!data/download_coco.sh
+!data/download_lvis.sh
+!data/download_sa_v.sh
+!data/download_lvos.sh
+!data/download_davis.sh
+!data/download_mose.sh
+!data/download_ytvos.sh
+!data/download_sa1b.sh
+!data/sa-v.txt
+!data/sa-1b.txt
+
 
 
