@@ -3,13 +3,18 @@
 
 Visual Information Lab, University of Bristol
 
-[[Paper](#)] [[Project Page](#)] [[Hugging Face](#)]
+[[Paper](#)] [[Project Page](https://simonzeng7108.github.io/efficientsam3/)] [[Hugging Face](https://huggingface.co/Simon7108528/EfficientSAM3)]
 
 ---
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Updates](#updates)
+  - [Stage 1: Encoder Distillation (Image-Level Segmentation)](#stage-1-encoder-distillation-image-level-segmentation)
+  - [Stage 2: Temporal Memory Distillation (Video Tracking)](#stage-2-temporal-memory-distillation-video-tracking)
+  - [Stage 3: End-to-End Fine-Tuning (Concept Segmentation)](#stage-3-end-to-end-fine-tuning-concept-segmentation)
+  - [tl;dr](#tldr)
 - [Installation](#installation)
 - [Inference](#inference)
 - [Training and Evaluation](#training-and-evaluation)
@@ -27,7 +32,7 @@ Visual Information Lab, University of Bristol
 
 ## Updates
 
-- **[2025/10/18]** 🎉 We first release EfficientSAM3 weights for all 9 encoder variants (Stage 1: Unsupervised Encoder Distillation)
+- **[2025/10/18]** Project announced. Code and weights are not released yet; they will be published once SAM3 code is publicly available.
 
 ---
 
@@ -151,7 +156,7 @@ masks, _, _ = predictor.predict(<input_prompts>)
 
 ## Training and Evaluation
 
-Please refer to [README_TRAIN.md](README_TRAIN.md) for training and evaluation details.
+Coming soon: training and evaluation details will be published once SAM3 is publicly available.
 
 ---
 
@@ -194,7 +199,7 @@ Coming soon: an interactive web demo for real-time concept segmentation and trac
 ---
 ## Development To-Do List
 
-- [x] **Release Stage 1 Encoder Weights**: Distilled encoder weights for all 9 variants (RepViT, TinyViT, EfficientViT)
+- [ ] **Release Stage 1 Encoder Weights**: Distilled encoder weights for all 9 variants (RepViT, TinyViT, EfficientViT) — pending SAM3 public release
 - [ ] **Release Stage 2 Memory Bank Aligned Model Weights**: Models with Perceiver-based memory compression trained on SA-V dataset
 - [ ] **Release Stage 3 Fine-Tuned Model Weights**: End-to-end fine-tuned models on SAM3 dataset with full PCS capabilities
 - [ ] **ONNX/CoreML Export**: Export models to ONNX and CoreML formats for cross-platform deployment
@@ -215,6 +220,7 @@ We welcome contributions to EfficientSAM3! Please feel free to submit pull reque
 - Anything else that you think is cool!
 ---
 
+All meaningful contributions will be acknowledged and integrated into both the repository and the associated paper. We warmly welcome all contributors to the repository and happily offer co-authorship to those whose work merits inclusion in the paper.
 
 ## Citation
 
