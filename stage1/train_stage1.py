@@ -198,6 +198,11 @@ def train_one_epoch(
         )
         loss = masked_mse(preds, saved_embeddings, valid_mask)
 
+        if config.DISTILL.COSINE > 0.0:
+            loss += config.DISTILL.COSINE * masked_cosine_loss(
+                preds, saved_embeddings, valid_mask
+            )
+
         loss = loss / config.TRAIN.ACCUMULATION_STEPS
         loss_meter.update(loss.detach().item(), samples.size(0))
 
@@ -269,6 +274,25 @@ def masked_mse(preds, teacher, mask):
     diff = (preds - teacher) * mask
     denom = mask.sum(dim=(1, 2, 3)).clamp(min=1.0)
     loss = diff.square().sum(dim=(1, 2, 3)) / denom
+    return loss.mean()
+
+
+def masked_cosine_loss(preds, teacher, mask):
+    # preds: (B, C, H, W)
+    # teacher: (B, C, H, W)
+    # mask: (B, 1, H, W)
+
+    # Cosine similarity along channel dimension (dim=1)
+    sim = F.cosine_similarity(preds, teacher, dim=1)  # (B, H, W)
+    loss = 1.0 - sim
+
+    # Apply mask
+    # mask is (B, 1, H, W), squeeze to (B, H, W)
+    mask = mask.squeeze(1)
+
+    loss = loss * mask
+    denom = mask.sum(dim=(1, 2)).clamp(min=1.0)
+    loss = loss.sum(dim=(1, 2)) / denom
     return loss.mean()
 
 

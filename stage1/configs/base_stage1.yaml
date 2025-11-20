@@ -22,7 +22,7 @@ DATA:
 
 DISTILL:
   EMBED_DIM: 256
-  EMBED_SIZE: 64
+  EMBED_SIZE: 72
   TEACHER_EMBED_PATH: output/stage1_teacher/embeddings/
   NO_RAND: True
   PIXEL_WISE: 1.0

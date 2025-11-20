@@ -1,11 +1,3 @@
-# --------------------------------------------------------
-# TinyViT Utils (save/load checkpoints, etc.)
-# Copyright (c) 2022 Microsoft
-# Based on the code: Swin Transformer
-#   (https://github.com/microsoft/swin-transformer)
-# Adapted for TinyViT
-# --------------------------------------------------------
-
 import os
 import torch
 import torch.distributed as dist

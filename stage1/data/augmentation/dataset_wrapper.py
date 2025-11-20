@@ -88,8 +88,9 @@ class DatasetWrapper(torch.utils.data.Dataset):
     def _resolve_logits_path(self, epoch: int):
         # Teacher embeddings are always saved once as epoch0
         # Student training loads the same epoch0 embeddings for all epochs
-        folder = f'logits_top{self.topk}_epoch0'
-        path = os.path.join(self.logits_path, folder)
+        # folder = f'logits_top{self.topk}_epoch0'
+        # path = os.path.join(self.logits_path, folder)
+        path = self.logits_path
         
         if self.write_mode:
             # Write mode: always use epoch0

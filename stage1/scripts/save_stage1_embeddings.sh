@@ -19,7 +19,7 @@ done
 set -- "${EXTRA_ARGS[@]}"
 
 CFG="${CFG:-stage1/configs/teacher/sam_vit_huge_sa1b.yaml}"
-DATA_PATH="${DATA_PATH:-datafolder/sa-1b}"
+DATA_PATH="${DATA_PATH:-data/sa-1b}"
 OUTPUT="${OUTPUT:-output/stage1_teacher}"
 GPUS="${GPUS:-8}"
 MASTER_PORT="${MASTER_PORT:-29501}"

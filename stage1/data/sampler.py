@@ -1,8 +1,3 @@
-# --------------------------------------------------------
-# TinyViT Data Sampler
-# Copyright (c) 2022 Microsoft
-# Refer to https://github.com/pytorch/pytorch/blob/master/torch/utils/data/distributed.py
-# --------------------------------------------------------
 import torch
 from typing import TypeVar, Optional, Iterator
 

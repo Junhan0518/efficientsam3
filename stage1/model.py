@@ -87,7 +87,7 @@ class SAM3TeacherEncoder(nn.Module):
         for param in self.sam3.parameters():
             param.requires_grad = False
         self.sam3.eval()
-        self.img_size = 1024
+        self.img_size = 1008
 
     def forward(self, x):
         backbone_out = self.sam3.backbone.forward_image(x)
@@ -120,6 +120,8 @@ class TinyViTAdapter(nn.Module):
         self.model.head = nn.Identity()
         self.final_hw = self._compute_resolution(img_size)
         self.out_channels = self.model.norm_head.normalized_shape[0]
+        # Remove norm_head to avoid DDP unused parameter error
+        self.model.norm_head = nn.Identity()
 
     def forward(self, x):
         x = self.model.patch_embed(x)
@@ -132,10 +134,11 @@ class TinyViTAdapter(nn.Module):
         return x
 
     def _compute_resolution(self, img_size):
-        base_h = self.model.patches_resolution[0]
-        downsample_steps = self.model.num_layers - 1
-        h = base_h // (2 ** downsample_steps)
-        return (h, h)
+        H, W = self.model.patches_resolution
+        for _ in range(self.model.num_layers - 1):
+            H = (H - 1) // 2 + 1
+            W = (W - 1) // 2 + 1
+        return (H, W)
 
 
 class EfficientViTAdapter(nn.Module):
@@ -149,6 +152,53 @@ class EfficientViTAdapter(nn.Module):
         return out["stage_final"]
 
 
+class EfficientSAM3VisionBackbone(nn.Module):
+    def __init__(self, student_encoder, position_encoding):
+        super().__init__()
+        self.student_encoder = student_encoder
+        self.position_encoding = position_encoding
+
+    def forward(self, x):
+        feats = self.student_encoder(x)
+        sam3_out = [feats]
+        sam3_pos = [self.position_encoding(feats).to(feats.dtype)]
+        sam2_out = None
+        sam2_pos = None
+        return sam3_out, sam3_pos, sam2_out, sam2_pos
+
+
+def build_efficient_sam3(config, checkpoint_path=None):
+    student_encoder = build_student_model(config)
+
+    # Build base SAM3 model structure
+    sam3 = build_sam3_image_model(
+        checkpoint_path=None,
+        load_from_HF=False,
+        eval_mode=True,
+        device="cpu",
+        enable_segmentation=True,
+        enable_inst_interactivity=False,
+        compile=False,
+    )
+
+    # Replace vision backbone
+    original_pos_enc = sam3.backbone.vision_backbone.position_encoding
+    vision_backbone = EfficientSAM3VisionBackbone(student_encoder, original_pos_enc)
+    sam3.backbone.vision_backbone = vision_backbone
+    
+    # Disable scalping since student encoder only returns one feature map
+    sam3.backbone.scalp = 0
+    
+    if checkpoint_path:
+        state_dict = torch.load(checkpoint_path, map_location="cpu")
+        if "model" in state_dict:
+            state_dict = state_dict["model"]
+            
+        # No remapping needed if checkpoint was converted with correct prefixes
+        missing, unexpected = sam3.load_state_dict(state_dict, strict=False)
+        print(f"Loaded checkpoint with {len(missing)} missing and {len(unexpected)} unexpected keys")
+        
+    return sam3
 def _build_backbone(name, img_size):
     if name.startswith("repvit"):
         fn = {

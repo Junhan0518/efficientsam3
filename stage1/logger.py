@@ -1,10 +1,3 @@
-# --------------------------------------------------------
-# Logger
-# Copyright (c) 2022 Microsoft
-# Based on the code: Swin Transformer
-#   (https://github.com/microsoft/swin-transformer)
-# --------------------------------------------------------
-
 import os
 import sys
 import logging

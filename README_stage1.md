@@ -11,10 +11,15 @@ back into the full SAM3 checkpoint for deployment.
 1. **Environment** – follow the root [Installation](README.md#installation) guide to
    create/activate the `efficientsam3` Conda environment and run
    `pip install -e ".[stage1]"` (installs PyTorch, decord, and all Stage‑1 deps).
-2. **Dataset** – make sure `DATA.DATA_PATH` points to your SA-1B root (the tree
+2. **Dataset** – make sure `DATA.DATA_PATH` (defined in `stage1/configs/base_stage1.yaml`) points to your SA-1B root (the tree
    must contain `images/{train,val}` and `annotations/{train,val}`). By default
-   configs/scripts read from `datafolder/sa-1b`.
-3. **Teacher weights** – download `sam3.pt` (or another SAM3 checkpoint) into
+   configs/scripts read from `data/sa-1b`.
+
+   **Note:** We currently distill from a 10% subset of SA-1B.
+   - Download links are provided in `data/sa-1b-10p.txt`.
+   - After downloading and extracting the tar archives, run `python data/reorg_sa1b.py` to reorganize the files into the required train/val structure.
+
+3. **Teacher weights** – download `sam3.pt` (or another SAM3 checkpoint) from [Hugging Face](https://huggingface.co/facebook/sam3/tree/main) into
    `sam3_checkpoints/` and set `MODEL.RESUME` inside
    `stage1/configs/teacher/sam_vit_huge_sa1b.yaml`.
 4. **Distributed launch** – both helper scripts use `torchrun`. Override
@@ -24,6 +29,33 @@ back into the full SAM3 checkpoint for deployment.
    `DATA.IMG_SIZE` set to `1008` in both teacher and student configs (or via
    `--opts DATA.IMG_SIZE 1008`) so the rotary embeddings match; larger crops
    such as `1024` will trigger an assertion inside the teacher model.
+6. **Parameter Analysis** – You can compare the parameter count of the SAM3 teacher model and the student models using the provided script:
+   ```bash
+   # View summary of all student models vs teacher
+   PYTHONPATH=sam3 python stage1/compare_models.py --student all
+   
+   # View detailed breakdown of a specific student model (e.g. RepViT-M1.1)
+   PYTHONPATH=sam3 python stage1/compare_models.py --student es_rv_m
+   ```
+
+   **Parameter Breakdown:**
+   - **SAM3 Teacher (Total)**: 860.06M parameters.
+     - **Vision Backbone**: 461.84M (Target for replacement).
+     - **Language Backbone**: 353.72M (Retained).
+     - **Decoder/Heads**: ~45M (Retained).
+
+   **Student Savings (Vision Encoder Only):**
+   | Student Model | Backbone | Params | vs. Teacher Encoder (461M) |
+   | :--- | :--- | :--- | :--- |
+   | **ES-EV-S** | EfficientViT-B0 | **0.68M** | **99.85% smaller** |
+   | **ES-RV-S** | RepViT-M0.9 | **4.72M** | **98.98% smaller** |
+   | **ES-TV-S** | TinyViT-5M | **5.07M** | **98.90% smaller** |
+   | **ES-TV-M** | TinyViT-11M | **10.55M** | **97.72% smaller** |
+   | **ES-RV-L** | RepViT-M2.3 | **22.40M** | **95.15% smaller** |
+
+7. **Shape Verification** – All 9 student backbones have been verified to produce the correct embedding shape (72x72) to match the SAM3 teacher (stride 14 at 1008x1008 input).
+   - **RepViT & EfficientViT**: Passed natively.
+   - **TinyViT**: Required a fix in `stage1/model.py` to correctly calculate the output resolution (32x32) for the 1008px input, resolving a mismatch where the adapter expected 31x31.
 
 ### 1. Prepare Inputs
 
@@ -37,7 +69,7 @@ back into the full SAM3 checkpoint for deployment.
 
 **This is a one-time forward pass** through the teacher model on the entire
 SA-1B dataset. The embeddings are saved once to
-`output/stage1_teacher/embeddings/logits_top<dim>_epoch0/`, then reused for all
+`output/stage1_teacher/embeddings/`, then reused for all
 student training epochs.
 
 Use the provided launcher or run the Python entry point directly.
@@ -66,6 +98,18 @@ bash stage1/scripts/save_stage1_embeddings.sh \
   --check-saved-embed
 ```
 
+**Output structure**:
+```
+output/stage1_teacher/
+├── config.json               # Config from embedding export
+├── log_rank0.txt             # Logs
+└── embeddings/               # Actual teacher embeddings
+    ├── rank0-keys.txt        # Image IDs
+    ├── rank0-values.bin      # Embeddings (float16)
+    ├── rank1-keys.txt        # (if using multiple GPUs)
+    └── rank1-values.bin
+```
+
 Both commands wrap:
 
 ```
@@ -76,25 +120,11 @@ torchrun --nproc_per_node <GPUS> stage1/save_embedding_stage1.py \
 ```
 
 The script produces sharded binary files in
-`output/stage1_teacher/embeddings/logits_top<dim>_epoch0/`. Each record stores the
+`output/stage1_teacher/embeddings/`. Each record stores the
 augmentation seed (first four bytes) followed by a float16 embedding grid of
-shape `(EMBED_DIM, EMBED_SIZE, EMBED_SIZE)`. The `epoch0` suffix is used
-for consistency with the data loading infrastructure, but **only one epoch
-of embeddings is saved**.
+shape `(EMBED_DIM, EMBED_SIZE, EMBED_SIZE)`.
 
-**Output structure**:
-```
-output/stage1_teacher/
-├── SAM3-Teacher/default/     # Logs and config from embedding export
-│   ├── config.json
-│   └── log_rank0.txt
-└── embeddings/               # Actual teacher embeddings
-    └── logits_top256_epoch0/
-        ├── rank0-keys.txt    # Image IDs
-        ├── rank0-values.bin  # Embeddings (float16)
-        ├── rank1-keys.txt    # (if using multiple GPUs)
-        └── rank1-values.bin
-```
+
 
 ### Step 2 — Train Student Encoders
 
@@ -123,13 +153,12 @@ bash stage1/scripts/train_stage1_student.sh \
 **Output structure**:
 ```
 output/stage1/repvit_m1/
-└── ES-RV-M/default/          # Student training outputs
-    ├── config.json           # Training config
-    ├── log_rank0.txt         # Training logs
-    ├── ckpt_epoch_0.pth      # Checkpoints per epoch
-    ├── ckpt_epoch_1.pth
-    └── ...
-    └── ckpt_epoch_29.pth     # Final checkpoint
+├── config.json           # Training config
+├── log_rank0.txt         # Training logs
+├── ckpt_epoch_0.pth      # Checkpoints per epoch
+├── ckpt_epoch_1.pth
+└── ...
+└── ckpt_epoch_29.pth     # Final checkpoint
 ```
 
 Students are selected via `MODEL.BACKBONE` in the config. The table below maps
@@ -158,7 +187,7 @@ Key config fields:
 | `DATA.BATCH_SIZE`, `DATA.NUM_WORKERS` | Input pipeline throughput controls. |
 | `OUTPUT`, `TAG` | Where checkpoints and TensorBoard logs are written. |
 
-Stage‑1 loss = masked per-pixel MSE computed on the resized embedding maps.
+Stage‑1 loss = masked per-pixel MSE + 1.0 * Cosine Similarity computed on the resized embedding maps.
 Padding pixels are filtered via `build_valid_mask`, so each student only learns
 from valid pixels. The training script supports DDP + AMP by default.
 
@@ -178,11 +207,11 @@ python stage1/convert_stage1_weights.py \
 ```
 output/
 ├── stage1_teacher/           # Teacher embedding export
-│   ├── SAM3-Teacher/default/ # Logs
+│   ├── config.json
+│   ├── log_rank0.txt
 │   └── embeddings/           # Embeddings (reused by all students)
 ├── stage1/                   # Student training
-│   └── repvit_m1/
-│       └── ES-RV-M/default/  # Checkpoints
+│   └── repvit_m1/            # Checkpoints
 └── efficient_sam3_repvit_m1.pt  # Final merged model
 ```
 
@@ -215,4 +244,3 @@ for multi-node rendezvous. By default they run single-node training with
 
 Customize the configs as needed (output directories, LR schedule, etc.) and run
 the steps above for each backbone to reproduce the Stage‑1 model zoo.
-

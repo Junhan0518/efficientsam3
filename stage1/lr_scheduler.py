@@ -1,10 +1,3 @@
-# --------------------------------------------------------
-# TinyViT Learning rate scheduler
-# Copyright (c) 2022 Microsoft
-# Based on the code: Swin Transformer
-#   (https://github.com/microsoft/swin-transformer)
-# --------------------------------------------------------
-
 import torch
 from timm.scheduler.cosine_lr import CosineLRScheduler
 from timm.scheduler.step_lr import StepLRScheduler

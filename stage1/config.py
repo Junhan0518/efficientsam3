@@ -52,6 +52,7 @@ _C.DISTILL.NUM_EMBED = _C.DISTILL.EMBED_SIZE * _C.DISTILL.EMBED_SIZE
 _C.DISTILL.PIXEL_WISE = 1.0
 _C.DISTILL.CHANNEL_WISE = 0.0
 _C.DISTILL.CORRELATION = 0.0
+_C.DISTILL.COSINE = 1.0
 _C.DISTILL.TEACHER_EMBED_PATH = 'data/teacher_embeddings'
 _C.DISTILL.SAVE_TEACHER_EMBED = False
 _C.DISTILL.NO_RAND = True
@@ -154,7 +155,7 @@ def update_config(config, args):
         args.local_rank = int(os.environ['LOCAL_RANK'])
     config.LOCAL_RANK = args.local_rank
 
-    config.OUTPUT = os.path.join(config.OUTPUT, config.MODEL.NAME, config.TAG)
+    # config.OUTPUT = os.path.join(config.OUTPUT, config.MODEL.NAME, config.TAG)
     config.DISTILL.NUM_EMBED = (
         config.DISTILL.EMBED_SIZE * config.DISTILL.EMBED_SIZE
     )

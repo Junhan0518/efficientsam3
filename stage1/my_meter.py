@@ -1,8 +1,3 @@
-# --------------------------------------------------------
-# TinyViT Utils
-# Copyright (c) 2022 Microsoft
-# --------------------------------------------------------
-
 import torch
 import torch.distributed as dist
 

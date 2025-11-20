@@ -224,6 +224,7 @@ if __name__ == "__main__":
     )
 
     if dist.get_rank() == 0:
+        os.makedirs(config.DISTILL.TEACHER_EMBED_PATH, exist_ok=True)
         path = os.path.join(config.OUTPUT, "config.json")
         with open(path, "w") as f:
             f.write(config.dump())

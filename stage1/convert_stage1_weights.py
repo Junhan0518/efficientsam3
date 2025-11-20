@@ -107,6 +107,10 @@ def main():
     replaced = 0
     appended = 0
     for key, value in teacher_sd.items():
+        # Strip 'detector.' prefix if present
+        if key.startswith("detector."):
+            key = key[len("detector."):]
+            
         if replace_prefix and key.startswith(replace_prefix):
             replaced += 1
             continue

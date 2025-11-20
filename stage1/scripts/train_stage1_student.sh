@@ -19,7 +19,7 @@ done
 set -- "${EXTRA_ARGS[@]}"
 
 CFG="${CFG:-stage1/configs/es_rv_m.yaml}"
-DATA_PATH="${DATA_PATH:-datafolder/sa-1b}"
+DATA_PATH="${DATA_PATH:-data/sa-1b}"
 OUTPUT="${OUTPUT:-output/stage1}"
 BATCH_SIZE="${BATCH_SIZE:-8}"
 GPUS="${GPUS:-8}"
