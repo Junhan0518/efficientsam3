@@ -3,7 +3,7 @@
 
 Visual Information Lab, University of Bristol
 
-[[Paper](#)] [[Project Page](https://simonzeng7108.github.io/efficientsam3/)] [[Hugging Face](https://huggingface.co/Simon7108528/EfficientSAM3)]
+[[Paper](https://arxiv.org/abs/2511.15833)] [[Project Page](https://simonzeng7108.github.io/efficientsam3/)] [[Hugging Face](https://huggingface.co/Simon7108528/EfficientSAM3)]
 
 ---
 
@@ -254,5 +254,6 @@ This work is inspired by and builds upon:
 - **[RepViT](https://github.com/THU-MIG/RepViT)** - Mobile-optimized Vision Transformer backbones
 - **[TinyViT](https://github.com/wkcn/TinyViT)** - Tiny Vision Transformer architectures
 - **[EfficientViT](https://github.com/mit-han-lab/efficientvit)** - Efficient Vision Transformer models
+
 
 
