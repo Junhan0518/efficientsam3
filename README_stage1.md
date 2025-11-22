@@ -72,6 +72,8 @@ SA-1B dataset. The embeddings are saved once to
 `output/stage1_teacher/embeddings/`, then reused for all
 student training epochs.
 
+> **Note:** The text encoder (~354M params) is disabled during this step to reduce memory usage, as we only need image embeddings.
+
 Use the provided launcher or run the Python entry point directly.
 
 ```bash

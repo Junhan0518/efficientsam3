@@ -563,6 +563,7 @@ def build_sam3_image_model(
     enable_segmentation=True,
     enable_inst_interactivity=False,
     compile=False,
+    enable_text_encoder=True,
 ):
     """
     Build SAM3 image model
@@ -575,6 +576,7 @@ def build_sam3_image_model(
         enable_segmentation: Whether to enable segmentation head
         enable_inst_interactivity: Whether to enable instance interactivity (SAM 1 task)
         compile_mode: To enable compilation, set to "default"
+        enable_text_encoder: Whether to enable text encoder
 
     Returns:
         A SAM3 image model
@@ -590,7 +592,10 @@ def build_sam3_image_model(
     )
 
     # Create text components
-    text_encoder = _create_text_encoder(bpe_path)
+    if enable_text_encoder:
+        text_encoder = _create_text_encoder(bpe_path)
+    else:
+        text_encoder = None
 
     # Create visual-language backbone
     backbone = _create_vl_backbone(vision_encoder, text_encoder)

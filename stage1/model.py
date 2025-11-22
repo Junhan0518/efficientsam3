@@ -83,6 +83,7 @@ class SAM3TeacherEncoder(nn.Module):
             enable_segmentation=True,
             enable_inst_interactivity=False,
             compile=False,
+            enable_text_encoder=False,
         )
         for param in self.sam3.parameters():
             param.requires_grad = False
