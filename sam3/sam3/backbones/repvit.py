@@ -1,4 +1,5 @@
 import torch.nn as nn
+import warnings
 
 def _make_divisible(v, divisor, min_value=None):
     """
@@ -19,7 +20,7 @@ def _make_divisible(v, divisor, min_value=None):
         new_v += divisor
     return new_v
 
-from timm.models.layers import SqueezeExcite
+from timm.layers import SqueezeExcite
 
 import torch
 
@@ -245,6 +246,8 @@ class RepViT(nn.Module):
         return x
 
 from timm.models import register_model
+# Suppress warning about overwriting repvit models in registry
+warnings.filterwarnings("ignore", message="Overwriting .* in registry")
 
 
 @register_model

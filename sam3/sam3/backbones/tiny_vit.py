@@ -9,14 +9,17 @@
 
 import itertools
 from typing import Tuple
+import warnings
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 import timm
-from timm.models.layers import DropPath as TimmDropPath,\
+from timm.layers import DropPath as TimmDropPath,\
     to_2tuple, trunc_normal_
-from timm.models.registry import register_model
+from timm.models import register_model
+# Suppress warning about overwriting tiny_vit models in registry
+warnings.filterwarnings("ignore", message="Overwriting .* in registry")
 try:
     # timm.__version__ >= "0.6"
     from timm.models._builder import build_model_with_cfg
@@ -524,7 +527,7 @@ class TinyViT(nn.Module):
                 )
 
         # Classifier head
-        self.norm_head = nn.LayerNorm(embed_dims[-1])
+        self.norm_head = nn.LayerNorm(embed_dims[-1]) if num_classes > 0 else torch.nn.Identity()
         self.head = nn.Linear(
             embed_dims[-1], num_classes) if num_classes > 0 else torch.nn.Identity()
 

@@ -16,9 +16,12 @@ if _INNER.is_dir():
 
 _inner_pkg = import_module("sam3.sam3")
 build_sam3_image_model = import_module("sam3.sam3.model_builder").build_sam3_image_model
+build_efficientsam3_image_model = import_module("sam3.sam3.model_builder").build_efficientsam3_image_model
 
 # Re-export everything the upstream package declared plus the builder helper.
 __all__ = list(getattr(_inner_pkg, "__all__", []))
 if "build_sam3_image_model" not in __all__:
     __all__.append("build_sam3_image_model")
+if "build_efficientsam3_image_model" not in __all__:
+    __all__.append("build_efficientsam3_image_model")
 

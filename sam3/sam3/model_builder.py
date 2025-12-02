@@ -727,7 +727,7 @@ def _create_student_vision_backbone(
         if model_name not in name_map:
              raise ValueError(f"Unknown RepViT model: {model_name}")
         
-        backbone = name_map[model_name](distillation=False)
+        backbone = name_map[model_name](distillation=False, num_classes=0)
         
         class RepViTTrunkWrapper(nn.Module):
             def __init__(self, model):
@@ -760,13 +760,13 @@ def _create_student_vision_backbone(
         if model_name not in name_map:
              raise ValueError(f"Unknown TinyViT model: {model_name}")
         
-        backbone = name_map[model_name](img_size=1008)
+        backbone = name_map[model_name](img_size=1008, num_classes=0)
 
         class TinyViTTrunkWrapper(nn.Module):
             def __init__(self, model):
                 super().__init__()
                 self.model = model
-                self.channel_list = [model.norm_head.normalized_shape[0]]
+                self.channel_list = [model.layers[-1].dim]
 
             def forward(self, x):
                 x = self.model.patch_embed(x)
